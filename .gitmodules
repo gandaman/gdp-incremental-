@@ -1,0 +1,3 @@
+[submodule "easy-build"]
+	path = easy-build
+	url = https://github.com/gmacario/easy-build
