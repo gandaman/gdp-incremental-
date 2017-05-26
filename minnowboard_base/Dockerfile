@@ -2,8 +2,8 @@
 
 FROM gdpbuild/base
 
+# Updating submodules
 WORKDIR /home/build/genivi-dev-platform
-
 RUN bash -c "source ./init.sh minnowboard"
 
 CMD "/bin/bash"

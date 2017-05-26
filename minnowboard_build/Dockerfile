@@ -11,9 +11,7 @@ USER build
 
 ADD build.sh build.sh
 
-# FIXME: move to base
-ENV LC_ALL=en_US.UTF-8 \
-    TARGET=minnowboard \
+ENV TARGET=minnowboard \
     REUSE_STANDARD_DL_DIR=false \
     REUSE_STANDARD_SSTATE_DIR=false \
     RM_WORK=true
