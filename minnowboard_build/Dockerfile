@@ -18,8 +18,5 @@ ENV LC_ALL=en_US.UTF-8 \
     REUSE_STANDARD_SSTATE_DIR=false \
     RM_WORK=true
 
-#RUN scripts/ci-build.sh CI_FLAG
+CMD scripts/ci-build.sh CI_FLAG
 
-CMD "/bin/bash"
-
-# EOF
