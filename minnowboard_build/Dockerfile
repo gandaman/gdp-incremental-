@@ -5,7 +5,7 @@ FROM gdpbuild/minnowboard_base
 WORKDIR /home/build/genivi-dev-platform
 
 # Starting with an arbitrary hash for now
-RUN git fetch && git checkout d650a946dabfeeb3878e6da77fe010ea002c6c53
+RUN git fetch 
 
 USER build
 
