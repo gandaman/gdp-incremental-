@@ -1,4 +1,4 @@
-FROM gdpbuild/r-car-m3-starter-kit_base
+FROM gdpbuild/r-car-m3-starter-kit_source_base
 
 WORKDIR $PROJECTDIR
 RUN git fetch origin && git checkout $REF

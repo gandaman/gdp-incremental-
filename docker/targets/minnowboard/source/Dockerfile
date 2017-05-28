@@ -1,4 +1,4 @@
-FROM gdpbuild/minnowboard_base
+FROM gdpbuild/minnowboard_source_base
 
 WORKDIR $PROJECTDIR
 RUN git fetch origin && git checkout $REF

@@ -1,4 +1,4 @@
-FROM gdpbuild/dragonboard-410c_base
+FROM gdpbuild/dragonboard-410c_source_base
 
 WORKDIR $PROJECTDIR
 RUN git fetch origin && git checkout $REF

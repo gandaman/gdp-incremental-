@@ -1,4 +1,4 @@
-FROM gdpbuild/qemux86-64_base
+FROM gdpbuild/qemux86-64_source_base
 
 WORKDIR $PROJECTDIR
 RUN git fetch origin && git checkout $REF
