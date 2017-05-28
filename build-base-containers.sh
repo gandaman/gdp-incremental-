@@ -3,6 +3,9 @@
 # (C) 2017 Gunnar Andersson
 # LICENSE: MPLv2
 
+# Build base containers, i.e. those that do not need to know which commit
+# to build
+
 D=$(dirname "$0")
 cd "$D"
 MYDIR="$PWD"
@@ -16,12 +19,12 @@ echo "------------- $d -----------"
 docker build -t gdpbuild/base .
 cd "$MYDIR"
 
-for d in docker/targets/*/{base,source_base,builtonce} ; do
+for d in docker/targets/*/{base,source_base} ; do
   cd "$d"
   tag="gdpbuild/$(basename $(readlink -f $PWD/..))_$(basename $PWD)"
   echo "------------- $d -> $tag -----------"
   docker build $QFLAG -t $tag .
-  if [ $? -ne 0 ; then
+  if [ $? -ne 0 ] ; then
     echo "FAILED"
     failed_list="$failed_list $tag"
   fi
