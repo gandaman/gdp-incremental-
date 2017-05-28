@@ -1,8 +1,7 @@
 FROM gdpbuild/base
 
-# Updating submodules
-ENV TARGET=minnowboard
-WORKDIR /home/build/genivi-dev-platform
-RUN bash -c "source ./init.sh $TARGET"
+ENV TARGET=r-car-m3-starter-kit
+WORKDIR $PROJECTDIR
 
-CMD "/bin/bash"
+# Updating submodules
+RUN bash -c "source ./init.sh $TARGET"

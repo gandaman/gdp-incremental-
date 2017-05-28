@@ -1,8 +1,7 @@
 FROM gdpbuild/base
 
-# Updating submodules
-ENV TARGET=qemu-x86_64
-WORKDIR /home/build/genivi-dev-platform
-RUN bash -c "source ./init.sh $TARGET"
+ENV TARGET=minnowboard
+WORKDIR $PROJECTDIR
 
-CMD "/bin/bash"
+# Updating submodules
+RUN bash -c "source ./init.sh $TARGET"
