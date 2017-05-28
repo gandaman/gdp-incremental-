@@ -60,12 +60,16 @@ image_name() {
   echo "gdpbuild/${target}${t}${h}"
 }
 
+source_base_image_name() {
+  image_name $1 source_base
+}
+
 source_image_name() {
   image_name $1 source
 }
 
-clean_image_name() {
-  image_name $1 clean
+builtonce_image_name() {
+  image_name $1 builtonce
 }
 
 base_image_name() {
@@ -103,16 +107,16 @@ find_image() {
 }
 
 find_image_from_history() {
-  local target="$1" ref="$2" source clean history found
+  local target="$1" ref="$2" builtonce_with_hash with_hash history found
 
   history=$(git rev-list $ref | cut -c 1-10)
   for h in $history ; do
     logline "Trying $h"
-    clean_with_hash=$(image_name $target clean $h)
+    builtonce_with_hash=$(image_name $target builtonce $h)
     with_hash=$(image_name $target "" $h)
-    if find_image $clean_with_hash ; then
-      found=$clean_with_hash
-      logline "Found clean with hash: $found"
+    if find_image $builtonce_with_hash ; then
+      found=$builtonce_with_hash
+      logline "Found builtonce with hash: $found"
       break
     elif find_image $with_hash ; then
       found=$with_hash
@@ -142,11 +146,12 @@ find_image_from_history() {
 # - easy-build base for yocto builds
 
 determine_build_image() {
-  local target="$1" ref="$2" source_img clean_img img
+  local target="$1" ref="$2" source_base_img source_img builtonce_img img
 
   # Image names, in case we need them
+  source_base_img=$(source_base_image_name $target)
   source_img=$(source_image_name $target)
-  clean_img=$(clean_image_name $target)
+  builtonce_img=$(builtonce_image_name $target)
   base_img=$(base_image_name $target)
 
   logline "Looking back in history for most recent image"
@@ -167,6 +172,14 @@ determine_build_image() {
     log "...not in history"
   fi
 
+  if find_image $builtonce_img ; then
+    logline "...found builtonce image"
+    chosen_image="$builtonce_img"
+    return 0
+  else
+    log "...no builtonce img"
+  fi
+
   if find_image $source_img ; then
     logline "...found source image"
     chosen_image="$source_img"
@@ -175,12 +188,12 @@ determine_build_image() {
     log "...no source img"
   fi
 
-  if find_image $clean_img ; then
-    logline "...found clean image"
-    chosen_image="$clean_img"
+  if find_image $source_base_img ; then
+    logline "...found source_base image"
+    chosen_image="$source_base_img"
     return 0
   else
-    log "...no clean img"
+    log "...no source img"
   fi
 
   if find_image $base_img ; then
