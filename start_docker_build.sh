@@ -243,4 +243,11 @@ cat "$ENVFILE"
 logline "Running build in docker"
 set -x
 docker run -ti --env-file "$ENVFILE" $chosen_image scripts/ci-build.sh CI_FLAG
+docker_result=$?
+
+if [ $docker_result -eq 0 ] ; then
+  echo "Result is OK"
+else
+  echo "Result is FAIL : $docker_result"
+fi
 

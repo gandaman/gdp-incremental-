@@ -1,4 +1,4 @@
-FROM gdpbuild/r-car-m3-yocto-kit_base
+FROM gdpbuild/r-car-m3-yocto-kit_source
 
 ENV REUSE_STANDARD_DL_DIR=false \
     REUSE_STANDARD_SSTATE_DIR=false \

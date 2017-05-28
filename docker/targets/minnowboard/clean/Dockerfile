@@ -1,4 +1,4 @@
-FROM gdpbuild/minnowboard_base
+FROM gdpbuild/minnowboard_source
 
 ENV REUSE_STANDARD_DL_DIR=false \
     REUSE_STANDARD_SSTATE_DIR=false \

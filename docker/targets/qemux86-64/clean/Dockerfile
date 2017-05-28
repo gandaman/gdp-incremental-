@@ -1,4 +1,4 @@
-FROM gdpbuild/qemux86-64_base
+FROM gdpbuild/qemux86-64_source
 
 ENV REUSE_STANDARD_DL_DIR=false \
     REUSE_STANDARD_SSTATE_DIR=false \

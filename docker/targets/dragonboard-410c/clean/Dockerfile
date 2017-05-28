@@ -1,4 +1,4 @@
-FROM gdpbuild/dragonboard_base
+FROM gdpbuild/dragonboard-410c_source
 
 ENV REUSE_STANDARD_DL_DIR=false \
     REUSE_STANDARD_SSTATE_DIR=false \
