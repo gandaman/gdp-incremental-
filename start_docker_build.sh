@@ -30,7 +30,7 @@ image_exists() {
   docker images | fgrep -q "$1"
 }
 
-image_pull() {
+pull_image() {
   if $PULL_ENABLED ; then
     logline "Pulling image $1 from repository"
     docker pull "$1" || log "...could not pull" 
@@ -40,12 +40,14 @@ image_pull() {
   fi
 }
 
-image_build() {
+build_image() {
   dir=$(echo "$1" | sed 's!gdpbuild/!!')
+  hash=$2
   if [ -d "$dir" ] ; then
     cd "$dir"
     logline "Building image $1"
-    docker build -t "$1" .
+    # For some builds, if $hash ($REF) is empty then that's OK
+    docker build --build-arg=REF=$hash -t "$1" .
     return $?
   else
     false
@@ -60,24 +62,25 @@ image_name() {
   echo "gdpbuild/${target}${t}${h}"
 }
 
+base_image_name() {
+  image_name $1 base
+}
+
 source_base_image_name() {
   image_name $1 source_base
 }
 
 source_image_name() {
-  image_name $1 source
+  image_name $1 source $2
 }
 
 builtonce_image_name() {
-  image_name $1 builtonce
-}
-
-base_image_name() {
-  image_name $1 base
+  image_name $1 builtonce $2
 }
 
 find_image() {
-  local wanted="$1" found=""
+  # (ref argument is used for only some)
+  local wanted="$1" found="" ref="$2"
   logline "Looking for $wanted..."
   if image_exists "$wanted" ; then
     log "...found"
@@ -87,7 +90,7 @@ find_image() {
     log "...does not exist locally"
   fi
 
-  if image_pull "$wanted" ; then
+  if pull_image "$wanted" ; then
     log "...pulled OK"
     chosen_image="$wanted"
     return 0
@@ -95,7 +98,7 @@ find_image() {
     log "...no pull, or failed pull"
   fi
 
-  if image_build "$wanted" ; then
+  if build_image "$wanted" $ref; then
     log "...built OK"
     chosen_image="$wanted"
     return 0
@@ -109,16 +112,18 @@ find_image() {
 find_image_from_history() {
   local target="$1" ref="$2" builtonce_with_hash with_hash history found
 
+  # h = the history hash
+  # ref = the new hash, the one to build
   history=$(git rev-list $ref | cut -c 1-10)
   for h in $history ; do
     logline "Trying $h"
     builtonce_with_hash=$(image_name $target builtonce $h)
     with_hash=$(image_name $target "" $h)
-    if find_image $builtonce_with_hash ; then
+    if find_image $builtonce_with_hash $ref; then
       found=$builtonce_with_hash
       logline "Found builtonce with hash: $found"
       break
-    elif find_image $with_hash ; then
+    elif find_image $with_hash $ref; then
       found=$with_hash
       logline "Found with hash: $found"
       break
@@ -149,6 +154,7 @@ determine_build_image() {
   local target="$1" ref="$2" source_base_img source_img builtonce_img img
 
   # Image names, in case we need them
+  this_image=$(image_name $target "" $ref)
   source_base_img=$(source_base_image_name $target)
   source_img=$(source_image_name $target)
   builtonce_img=$(builtonce_image_name $target)
@@ -156,14 +162,17 @@ determine_build_image() {
 
   logline "Looking back in history for most recent image"
 
-  if image_pull "$wanted" ; then
-    log "...pulled OK"
-    chosen_image="$wanted"
+  # find_image this_image?  or pull_image?
+  if pull_image "$this_image" ; then
+    log "...already built - pulled OK"
+    chosen_image="$this_image"
     return 0
   else
     log "...no pull, or failed pull"
   fi
 
+  # either <hash> or builtonce_<hash>
+  # NOTE $ref is the new starting $ref
   if find_image_from_history $target $ref ; then
     logline "...found image in history."
     # (returns $chosen_image)
@@ -172,13 +181,13 @@ determine_build_image() {
     log "...not in history"
   fi
 
-  if find_image $builtonce_img ; then
-    logline "...found builtonce image"
-    chosen_image="$builtonce_img"
-    return 0
-  else
-    log "...no builtonce img"
-  fi
+#  if find_image $builtonce_img ; then
+#    logline "...found builtonce image"
+#    chosen_image="$builtonce_img"
+#    return 0
+#  else
+#    log "...no builtonce img"
+#  fi
 
   if find_image $source_img ; then
     logline "...found source image"
