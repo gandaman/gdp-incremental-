@@ -156,8 +156,8 @@ determine_build_image() {
   # Image names, in case we need them
   this_image=$(image_name $target "" $ref)
   source_base_img=$(source_base_image_name $target)
-  source_img=$(source_image_name $target)
-  builtonce_img=$(builtonce_image_name $target)
+  source_img=$(source_image_name $target $ref) #unlikely to exist for ref?
+  builtonce_img=$(builtonce_image_name $target $ref) #unlikely to exist?
   base_img=$(base_image_name $target)
 
   logline "Looking back in history for most recent image"
@@ -240,10 +240,10 @@ logline "Found an image.  Starting build based on $chosen_image"
 
 logline "Preparing env file: "
 cat <<EOT >"$ENVFILE"
+TARGET=$target
 COMMIT=$ref
 REUSE_STANDARD_DL_DIR=false
 REUSE_STANDARD_SSTATE_DIR=false
-TARGET=$TARGET
 BRANCH=$BRANCH
 TAG=$TAG
 RELEASE=$RELEASE
