@@ -1,6 +1,6 @@
 FROM gdpbuild/base
 
-ENV TARGET=qemu-x86_64
+ENV TARGET=qemux86-64
 WORKDIR $PROJECTDIR
 
 # Updating submodules
