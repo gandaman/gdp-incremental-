@@ -13,7 +13,7 @@ echo "------------- $d -----------"
 docker build -t gdpbuild/base .
 cd "$MYDIR"
 
-for d in $(ls docker/targets/*/{base,source_base,builtonce}) ; do
+for d in docker/targets/*/{base,source_base,builtonce} ; do
   cd "$d"
   tag="gdpbuild/$(basename $(readlink -f $PWD/..))_$(basename $PWD)"
   echo "------------- $d -----------"
