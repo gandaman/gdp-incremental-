@@ -7,5 +7,3 @@ RUN git clone https://github.com/GENIVI/genivi-dev-platform
 RUN chown -R build:build /home/build
 ENV LC_ALL=en_US.UTF-8
 CMD "/bin/bash"
-
-# EOF
