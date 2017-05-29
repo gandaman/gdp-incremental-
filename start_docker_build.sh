@@ -206,7 +206,7 @@ determine_build_image() {
 #    log "...no builtonce img"
 #  fi
 
-  if find_image $source_img ; then
+  if find_image $source_img $ref; then
     logline "...found source image"
     chosen_image="$source_img"
     return 0
