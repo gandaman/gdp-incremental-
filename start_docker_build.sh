@@ -254,7 +254,8 @@ else
   exit 1
 fi
 
-logline "Found an image.  Starting build based on $chosen_image"
+new_image_tag="gdpbuild/${target}_${ref}"
+logline "Found an image.  Starting build based on $chosen_image to create $new_image_tag"
 
 logline "Preparing env file: "
 cat <<EOT >"$ENVFILE"
@@ -292,7 +293,6 @@ timestamp=$(date +"%Y-%m-%d_%H%M%S")
 
 if [ $docker_result -eq 0 ] ; then
   echo "Result is OK."
-  new_image_tag="gdpbuild/${target}_${ref}"
   new_image_tag_without_slash="gdpbuild_${target}_${ref}"
   logname="logs_${timestamp}_from_${chosen_image_without_slash}_to_${new_image_tag_without_slash}.txt"
 else
