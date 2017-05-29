@@ -23,7 +23,7 @@ logline() {
    echo "$@" 1>&2
 }
 log() {
-   echo -e "$@" 1>&2
+   echo -n "$@" 1>&2
 }
 
 image_exists() {
@@ -40,16 +40,30 @@ pull_image() {
   fi
 }
 
+# FIXME this is totally broken
+# write logic to go from imagename -> Dockerfile
 build_image() {
-  dir=$(echo "$1" | sed 's!gdpbuild/!!')
-  hash=$2
+  img=$1
+  hash=$2  # Empty for some images
+  dir=$(echo "$img" | sed 's!gdpbuild/!!')
+  target=$(echo "$dir" | cut -d_ -f 1)
+  type=$(echo "$dir" | cut -d_ -f 2)
+  if [ -z "$hash" ] ; then
+    dir="docker/targets/$target/$type"
+  else
+    dir="docker/targets/$target/${type}_$hash"
+  fi
   if [ -d "$dir" ] ; then
     cd "$dir"
-    logline "Building image $1"
+    logline ""
+    logline "Building image $1 using $dir/Dockerfile"
     # For some builds, if $hash ($REF) is empty then that's OK
+    set -x
     docker build --build-arg=REF=$hash -t "$1" .
+    set +x
     return $?
   else
+    #echo "*** FAILED finding dir $dir"
     false
   fi
 }
@@ -81,6 +95,7 @@ builtonce_image_name() {
 find_image() {
   # (ref argument is used for only some)
   local wanted="$1" found="" ref="$2"
+  logline ""
   logline "Looking for $wanted..."
   if image_exists "$wanted" ; then
     log "...found"
@@ -116,6 +131,7 @@ find_image_from_history() {
   # ref = the new hash, the one to build
   history=$(git rev-list $ref | cut -c 1-10)
   for h in $history ; do
+    logline ""
     logline "Trying $h"
     builtonce_with_hash=$(image_name $target builtonce $h)
     with_hash=$(image_name $target "" $h)
@@ -128,7 +144,8 @@ find_image_from_history() {
       logline "Found with hash: $found"
       break
     else
-      log "...giving up for $h"
+      logline ""
+      logline "...giving up for $h"
       found=""
     fi
   done
@@ -216,6 +233,7 @@ determine_build_image() {
   if find_image gmacario/build-yocto ; then
     logline "...found easy-build/build-yocto image"
     chosen_image="gmacario/build-yocto"
+    echo "FIXME - SHOULD RUN docker build here instead"
     return 0
   else
     logline "...no build-yocto img"
@@ -264,12 +282,31 @@ cat "$ENVFILE"
 
 logline "Running build in docker"
 set -x
-docker run -ti --env-file "$ENVFILE" $chosen_image scripts/ci-build.sh CI_FLAG
+id=$(docker run -d -ti --env-file "$ENVFILE" $chosen_image scripts/ci-build.sh CI_FLAG)
+set +x
+docker attach $id
 docker_result=$?
 
+chosen_image_without_slash="$(echo $chosen_image | sed 's!/!_!g')"
+timestamp=$(date +"%Y-%m-%d_%H%M%S")
+
 if [ $docker_result -eq 0 ] ; then
-  echo "Result is OK"
+  echo "Result is OK."
+  new_image_tag="gdpbuild/${target}_${ref}"
+  new_image_tag_without_slash="gdpbuild_${target}_${ref}"
+  logname="logs_${timestamp}_from_${chosen_image_without_slash}_to_${new_image_tag_without_slash}.txt"
 else
   echo "Result is FAIL : $docker_result"
+  logname="logs_${timestamp}_from_${chosen_image_without_slash}_FAILED.txt"
+fi
+
+echo "Saving logs from docker run -> $logname.gz"
+docker logs $id >"$logname"
+gzip "$logname"
+
+# Keep incremental image if build was successful
+if [ $docker_result -eq 0 ] ; then
+  echo "Storing image from successful build"
+  newid=$(docker commit $id $new_image_tag)
 fi
 
